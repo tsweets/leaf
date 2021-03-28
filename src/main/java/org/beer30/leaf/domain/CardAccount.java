@@ -2,9 +2,11 @@ package org.beer30.leaf.domain;
 
 
 import lombok.Data;
-import org.beer30.leaf.domain.enumeration.CardNetwork;
 import org.beer30.leaf.domain.enumeration.CardStatus;
+import org.beer30.leaf.domain.enumeration.CardNetwork;
 import org.beer30.leaf.domain.enumeration.CardType;
+import org.hibernate.annotations.Type;
+import org.joda.money.Money;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -48,7 +50,8 @@ public class CardAccount {
 
     @NotNull
     @Column(name = "balance", precision = 10, scale = 2)
-    private BigDecimal balance;
+    @Type(type = "org.jadira.usertype.moneyandcurrency.joda.PersistentMoneyAmount", parameters = {@org.hibernate.annotations.Parameter(name = "currencyCode", value = "USD")})
+    private Money balance;
 
     @NotNull
     @Enumerated(EnumType.STRING)

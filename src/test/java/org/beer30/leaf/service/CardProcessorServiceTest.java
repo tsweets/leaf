@@ -1,4 +1,4 @@
-package org.beer30.leaf.web.rest;
+package org.beer30.leaf.service;
 
 
 import org.beer30.leaf.LeafApplication;
@@ -16,10 +16,11 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.math.BigDecimal;
+
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = LeafApplication.class)
-@AutoConfigureMockMvc
-public class CardProcessorTest {
+@SpringBootTest(classes = LeafApplication.class)
+public class CardProcessorServiceTest {
 
     @Autowired
     TestService testService;
@@ -49,5 +50,13 @@ public class CardProcessorTest {
         CardAccount cardAccountFound = cardProcessorService.accountInquiry(cardAccount.getCardNumber());
         Assert.assertNotNull(cardAccountFound);
         Assert.assertEquals(cardAccount, cardAccountFound);
+    }
+
+    //Prepaid Adjustment (CardNumber, Amount - From PM Acct - Used for Fee)
+    @Test
+    public void testPrepaidAdjustment() {
+        //TODO
+        Assert.assertTrue(true);
+
     }
 }

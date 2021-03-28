@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.beer30.leaf.domain.CardAccount;
 import org.beer30.leaf.repository.CardAccountRepository;
 import org.beer30.leaf.web.rest.dto.CardAccountDTO;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,7 +42,7 @@ public class CardProcessorService {
         cardAccount.setDdaAccountNumber(dto.getDdaAccountNumber());
         cardAccount.setCardStatus(dto.getCardStatus());
         cardAccount.setImprintedName(dto.getImprintedName());
-        cardAccount.setBalance(new BigDecimal(BigInteger.ZERO, 2));
+        cardAccount.setBalance(Money.zero(CurrencyUnit.USD));
         cardAccount.setCardType(dto.getCardType());
         cardAccount.setCardNetwork(dto.getCardNetwork());
         cardAccount.setDob(dto.getDob());

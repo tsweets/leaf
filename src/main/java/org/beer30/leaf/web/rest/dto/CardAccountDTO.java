@@ -4,6 +4,8 @@ import lombok.Data;
 import org.beer30.leaf.domain.enumeration.CardNetwork;
 import org.beer30.leaf.domain.enumeration.CardStatus;
 import org.beer30.leaf.domain.enumeration.CardType;
+import org.joda.money.Money;
+import org.springdoc.core.converters.models.MonetaryAmount;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -30,7 +32,7 @@ public class CardAccountDTO {
     @Size(max = 60)
     private String imprintedName;
 
-    private BigDecimal balance;
+    private Money balance;
 
     private CardType cardType;
 
