@@ -1,12 +1,14 @@
 package org.beer30.leaf.domain;
 
 import lombok.Data;
-import org.beer30.leaf.domain.enumeration.TransactionType;
+import org.beer30.leaf.domain.enumeration.TransactionCode;
+import org.hibernate.annotations.Type;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
@@ -21,21 +23,21 @@ public class Transaction implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @NotNull
-    @Column(name = "env_id", nullable = false)
+    @Column(name = "env_id")
     private Integer envId;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
-    private TransactionType type;
+    private TransactionCode transactionCode;
 
     @NotNull
     @Column(name = "date", nullable = false)
     private Instant date;
 
     @Column(name = "amount", precision = 10, scale = 2)
-    private BigDecimal amount;
+    @Type(type = "org.jadira.usertype.moneyandcurrency.joda.PersistentMoneyAmount", parameters = {@org.hibernate.annotations.Parameter(name = "currencyCode", value = "USD")})
+    private Money amount = Money.zero(CurrencyUnit.USD);
 
     @Column(name = "note")
     private String note;

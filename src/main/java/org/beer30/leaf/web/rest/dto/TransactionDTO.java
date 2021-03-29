@@ -1,11 +1,12 @@
 package org.beer30.leaf.web.rest.dto;
 
 
-import org.beer30.leaf.domain.enumeration.TransactionType;
+import org.beer30.leaf.domain.enumeration.TransactionCode;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
 
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -20,12 +21,12 @@ public class TransactionDTO implements Serializable {
     private Integer envId;
 
     @NotNull
-    private TransactionType type;
+    private TransactionCode transactionCode;
 
     @NotNull
     private Instant date;
 
-    private BigDecimal amount;
+    private Money amount = Money.zero(CurrencyUnit.USD);
 
     private String note;
 
@@ -47,12 +48,12 @@ public class TransactionDTO implements Serializable {
         this.envId = envId;
     }
 
-    public TransactionType getType() {
-        return type;
+    public TransactionCode getTransactionCode() {
+        return transactionCode;
     }
 
-    public void setType(TransactionType type) {
-        this.type = type;
+    public void setTransactionCode(TransactionCode code) {
+        this.transactionCode = code;
     }
 
     public Instant getDate() {
@@ -63,11 +64,11 @@ public class TransactionDTO implements Serializable {
         this.date = date;
     }
 
-    public BigDecimal getAmount() {
+    public Money getAmount() {
         return amount;
     }
 
-    public void setAmount(BigDecimal amount) {
+    public void setAmount(Money amount) {
         this.amount = amount;
     }
 
@@ -111,7 +112,7 @@ public class TransactionDTO implements Serializable {
         return "TransactionDTO{" +
                 "id=" + id +
                 ", envId='" + envId + "'" +
-                ", type='" + type + "'" +
+                ", code='" + transactionCode + "'" +
                 ", date='" + date + "'" +
                 ", amount='" + amount + "'" +
                 ", note='" + note + "'" +

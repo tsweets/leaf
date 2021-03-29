@@ -38,7 +38,7 @@ public class TransactionMapper {
             TransactionDTO dto = new TransactionDTO();
             dto.setId(transaction.getId());
             dto.setEnvId(transaction.getEnvId());
-            dto.setType(transaction.getType());
+            dto.setTransactionCode(transaction.getTransactionCode());
             dto.setDate(transaction.getDate());
             dto.setAmount(transaction.getAmount());
             dto.setNote(transaction.getNote());
@@ -55,7 +55,7 @@ public class TransactionMapper {
             Transaction transaction = new Transaction();
             transaction.setId(dto.getId());
             transaction.setEnvId(dto.getEnvId());
-            transaction.setType(dto.getType());
+            transaction.setTransactionCode(dto.getTransactionCode());
             transaction.setDate(dto.getDate());
             transaction.setAmount(dto.getAmount());
             transaction.setNote(dto.getNote());

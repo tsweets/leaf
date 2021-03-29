@@ -2,6 +2,7 @@ package org.beer30.leaf;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jodamoney.JodaMoneyModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.github.javafaker.Faker;
 import org.beer30.leaf.domain.enumeration.CardNetwork;
@@ -48,7 +49,10 @@ public class TestUtil {
         module.addDeserializer(LocalDate.class, JSR310LocalDateDeserializer.INSTANCE);
         mapper.registerModule(module);
 
-        return mapper.writeValueAsBytes(object);
+        mapper.registerModule(new JodaMoneyModule());
+        byte[] valueAsBytes = mapper.writeValueAsBytes(object);
+        System.out.println("Raw JSON: " + mapper.writeValueAsString(object));
+        return valueAsBytes;
     }
 
     /**

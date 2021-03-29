@@ -2,7 +2,10 @@ package org.beer30.leaf.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.beer30.leaf.domain.CardAccount;
+import org.beer30.leaf.domain.Transaction;
+import org.beer30.leaf.domain.enumeration.TransactionCode;
 import org.beer30.leaf.repository.CardAccountRepository;
+import org.beer30.leaf.repository.TransactionRepository;
 import org.beer30.leaf.web.rest.dto.CardAccountDTO;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -10,8 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Transactional
@@ -20,6 +24,9 @@ public class CardProcessorService {
 
     @Autowired
     CardAccountRepository cardAccountRepository;
+
+    @Autowired
+    TransactionRepository transactionRepository;
 
     //Account Inquiry (Given Card Number return Card Account)
     public CardAccount accountInquiry(String cardNumber) {
@@ -61,5 +68,51 @@ public class CardProcessorService {
         }
 
         return savedAccount;
+    }
+
+    public CardAccount prepaidAdjustment(String cardNumber, Money adjustmentAmount) {
+        CardAccount cardAccount = this.accountInquiry(cardNumber);
+        if (cardAccount != null) {
+            log.info("Adjusting Card balance starting: {}  Adjustment amt: {}", cardAccount.getBalance(), adjustmentAmount);
+            cardAccount.setBalance(cardAccount.getBalance().plus(adjustmentAmount));
+            log.info("New Balance: {}", cardAccount.getBalance());
+        }
+        CardAccount savedAccount = cardAccountRepository.save(cardAccount);
+        return savedAccount;
+    }
+
+    public List<Transaction> getTransactionHistory(String cardNumber) {
+        CardAccount cardAccount = this.accountInquiry(cardNumber);
+        List<Transaction> transactionList = new ArrayList<>();
+
+        if (cardAccount != null) {
+            log.info("Looking for Transactions for Card: {}", cardAccount.getId());
+            transactionList = transactionRepository.findAllByCardId(cardAccount.getId());
+        } else {
+            return null;
+        }
+
+        return transactionList;
+    }
+
+    public Transaction purchase(String cardNumber, Money purchaseAmount, String description) {
+        CardAccount cardAccount = this.accountInquiry(cardNumber);
+        if (cardAccount == null) {
+            return null;
+        }
+
+        Transaction transaction = new Transaction();
+        transaction.setTransactionCode(TransactionCode.ACH_REMOVE_FUNDS);
+        transaction.setCardId(cardAccount.getId());
+        transaction.setAmount(purchaseAmount);
+        transaction.setDate(Instant.now());
+        transaction.setNote(description);
+
+        Transaction transactionSaved = transactionRepository.save(transaction);
+
+        cardAccount.setBalance(cardAccount.getBalance().minus(purchaseAmount));
+        cardAccountRepository.save(cardAccount);
+
+        return transactionSaved;
     }
 }
