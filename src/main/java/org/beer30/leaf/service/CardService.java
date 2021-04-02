@@ -1,6 +1,7 @@
 package org.beer30.leaf.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.beer30.leaf.domain.Card;
 import org.beer30.leaf.repository.CardRepository;
 import org.beer30.leaf.web.rest.dto.CardDTO;
@@ -26,6 +27,17 @@ public class CardService {
     @Autowired
     private CardMapper cardMapper;
 
+
+    public String generateCardNumber(String prefix, String extension) {
+        StringBuffer cardNumber = new StringBuffer(prefix);
+        cardNumber.append(extension);
+        // Need 7 more digits
+        String cardRestDigits = RandomStringUtils.randomNumeric(7);
+        cardNumber.append(cardRestDigits);
+
+        log.info("Generated Card Number: {}", cardNumber);
+        return cardNumber.toString();
+    }
 
     /**
      * Save a card.

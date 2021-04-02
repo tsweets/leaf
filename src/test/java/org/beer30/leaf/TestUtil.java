@@ -79,7 +79,7 @@ public class TestUtil {
         dto.setCardStatus(CardStatus.PRE_ACTIVE);
         dto.setImprintedName(faker.name().fullName());
         dto.setCardType(CardType.PERSONALIZED);
-        dto.setCardNetwork(CardNetwork.Visa);
+        dto.setCardNetwork(CardNetwork.VISA);
         dto.setDob(LocalDate.ofInstant(faker.date().birthday(18, 99).toInstant(), ZoneId.systemDefault()));
         dto.setSsn(faker.idNumber().ssnValid());
         dto.setStreet1(faker.address().streetAddress());

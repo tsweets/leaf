@@ -1,9 +1,12 @@
 package org.beer30.leaf.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.beer30.leaf.domain.CardAccount;
 import org.beer30.leaf.domain.Transaction;
+import org.beer30.leaf.domain.enumeration.CardStatus;
 import org.beer30.leaf.domain.enumeration.TransactionCode;
+import org.beer30.leaf.domain.util.CardProcessorUtils;
 import org.beer30.leaf.repository.CardAccountRepository;
 import org.beer30.leaf.repository.TransactionRepository;
 import org.beer30.leaf.web.rest.dto.CardAccountDTO;
@@ -27,6 +30,21 @@ public class CardProcessorService {
 
     @Autowired
     TransactionRepository transactionRepository;
+
+    @Autowired
+    CardProcessorUtils cardProcessorUtils;
+
+
+    public String generateCardNumber(String prefix, String extension) {
+        StringBuffer cardNumber = new StringBuffer(prefix);
+        cardNumber.append(extension);
+        // Need 7 more digits
+        String cardRestDigits = RandomStringUtils.randomNumeric(7);
+        cardNumber.append(cardRestDigits);
+
+        log.info("Generated Card Number: {}", cardNumber);
+        return cardNumber.toString();
+    }
 
     //Account Inquiry (Given Card Number return Card Account)
     public CardAccount accountInquiry(String cardNumber) {
@@ -61,6 +79,10 @@ public class CardProcessorService {
         cardAccount.setPostalCode(dto.getPostalCode());
         cardAccount.setPhoneNumber(dto.getPhoneNumber());
         cardAccount.setEmail(dto.getPhoneNumber());
+
+        cardAccount.setCardNetwork(CardProcessorUtils.getCardNetwork(cardAccount.getCardNumber()));
+        cardAccount.setCardStatus(CardStatus.PRE_ACTIVE);
+        cardAccount.setCardType(cardProcessorUtils.getCardType(cardAccount.getCardNumber()));
 
         CardAccount savedAccount = cardAccountRepository.save(cardAccount);
         if (savedAccount != null) {

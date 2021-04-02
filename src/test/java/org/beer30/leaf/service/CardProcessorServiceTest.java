@@ -36,6 +36,13 @@ public class CardProcessorServiceTest {
     }
 
     @Test
+    public void generateCardNumber() {
+        String cardNumber = cardProcessorService.generateCardNumber("123456", "012");
+        Assert.assertNotNull(cardNumber);
+        Assert.assertEquals(16, cardNumber.length());
+    }
+
+    @Test
     public void createCardAccountTest() {
         CardAccountDTO dto = TestUtil.generateFakeCardAccountDTO();
 
