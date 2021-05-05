@@ -57,4 +57,20 @@ public class CardProcessor {
 
     }
 
+    @RequestMapping(value = "/v1/card/find-by-number/{cardNumber}",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CardAccount> accountInquiry(@PathVariable String cardNumber) {
+        log.debug("REST request Account Inquiry: {}", cardNumber);
+
+        CardAccount cardAccount = cardProcessorService.accountInquiry(cardNumber);
+
+        return Optional.ofNullable(cardAccount)
+                .map(result -> new ResponseEntity<>(
+                        result,
+                        HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+
+    }
+
 }

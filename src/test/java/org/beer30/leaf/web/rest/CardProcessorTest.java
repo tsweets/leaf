@@ -3,6 +3,7 @@ package org.beer30.leaf.web.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.beer30.leaf.LeafApplication;
 import org.beer30.leaf.TestUtil;
+import org.beer30.leaf.service.CardProcessorService;
 import org.beer30.leaf.web.rest.dto.CardAccountDTO;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,6 +36,10 @@ public class CardProcessorTest {
     @Value("${leaf.processor.personlaized.extension}")
     private String extension;
 
+    @Autowired
+    CardProcessorService cardProcessorService;
+
+
     @Test
     public void getCardNumber() throws Exception {
 
@@ -58,6 +63,7 @@ public class CardProcessorTest {
     @Test
     public void createCardholder() throws Exception {
         CardAccountDTO dto = TestUtil.generateFakeCardAccountDTO();
+        dto.setCardNumber(cardProcessorService.generateCardNumber(prefix, extension));
 
         MvcResult result = mockMvc.perform(post("/api/v1/card")
                 .contentType(TestUtil.APPLICATION_JSON_UTF8)
@@ -69,7 +75,17 @@ public class CardProcessorTest {
         CardAccountDTO resultAccount = objectMapper.readValue(resultString, CardAccountDTO.class);
 
         Assert.assertNotNull(resultAccount);
-        Assert.assertEquals(dto.getCardNumber(), resultAccount.getCardNumber());
+        String cardNumber = resultAccount.getCardNumber();
+        Assert.assertEquals(dto.getCardNumber(), cardNumber);
+
+
+        // Test Get Card by Number
+
+        MvcResult resultCardLookup = mockMvc.perform(get("/api/v1/card/find-by-number/{cardNumber}", cardNumber))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        Assert.assertNotNull(resultCardLookup);
 
     }
 
