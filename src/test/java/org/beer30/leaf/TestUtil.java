@@ -71,10 +71,17 @@ public class TestUtil {
 
     public static CardAccountDTO generateFakeCardAccountDTO() {
         Faker faker = new Faker();
+        String cardNumber = faker.number().digits(16);
+
+        return TestUtil.generateFakeCardAccountDTO(cardNumber);
+    }
+
+    public static CardAccountDTO generateFakeCardAccountDTO(String cardNumber) {
+        Faker faker = new Faker();
         CardAccountDTO dto = new CardAccountDTO();
         dto.setEnvId(1);
         dto.setExternalId(faker.number().randomNumber(10, true));
-        dto.setCardNumber(faker.number().digits(16));
+        dto.setCardNumber(cardNumber);
         dto.setDdaAccountNumber(faker.number().digits(10));
         dto.setCardStatus(CardStatus.PRE_ACTIVE);
         dto.setImprintedName(faker.name().fullName());

@@ -14,6 +14,14 @@ public class TestService {
     @Autowired
     CardProcessorService cardProcessorService;
 
+    public CardAccount createCardAccount(String cardNumber) {
+        CardAccountDTO dto = TestUtil.generateFakeCardAccountDTO(cardNumber);
+        CardAccount cardAccount = cardProcessorService.createCardAccount(dto);
+        log.info("Created Fake Account: ID {} - Card Number {}", cardAccount.getId(), cardAccount.getCardNumber());
+
+        return cardAccount;
+    }
+
     public CardAccount createCardAccount() {
         CardAccountDTO dto = TestUtil.generateFakeCardAccountDTO();
         CardAccount cardAccount = cardProcessorService.createCardAccount(dto);

@@ -2,6 +2,7 @@ package org.beer30.leaf.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.beer30.leaf.domain.CardAccount;
 import org.beer30.leaf.domain.Transaction;
 import org.beer30.leaf.domain.enumeration.CardStatus;
@@ -34,6 +35,58 @@ public class CardProcessorService {
     @Autowired
     CardProcessorUtils cardProcessorUtils;
 
+    public CardAccount closeCard(CardAccount cardAccount) {
+        log.info("Request to Close Card: {} ", cardAccount);
+        cardAccount.setCardStatus(CardStatus.CLOSED);
+        CardAccount savedCard = cardAccountRepository.save(cardAccount);
+
+        return savedCard;
+    }
+
+    public CardAccount replaceCard(CardAccount oldCard) {
+        log.info("Request to replace card: {}", oldCard);
+        // Start Replace Card
+        // Change state of old card
+        oldCard = this.closeCard(oldCard);
+
+        String prefix = StringUtils.left(oldCard.getCardNumber(), 6);
+        String extension = StringUtils.substring(oldCard.getCardNumber(), 6, 9);
+
+
+        // return new card
+        String newCardNumber = this.generateCardNumber(prefix, extension);
+        log.info("Generated New Card Number: {}", newCardNumber);
+        CardAccountDTO dto = new CardAccountDTO();
+        dto.setEnvId(1);
+        dto.setExternalId(oldCard.getExternalId());
+        dto.setCardNumber(newCardNumber);
+        dto.setDdaAccountNumber(oldCard.getDdaAccountNumber());
+        dto.setCardStatus(CardStatus.PRE_ACTIVE);
+        dto.setImprintedName(oldCard.getImprintedName());
+        dto.setCardType(oldCard.getCardType());
+        dto.setCardNetwork(oldCard.getCardNetwork());
+        dto.setDob(oldCard.getDob());
+        dto.setSsn(oldCard.getSsn());
+        dto.setStreet1(oldCard.getStreet1());
+        dto.setStreet2(oldCard.getStreet2());
+        dto.setCity(oldCard.getCity());
+        dto.setState(oldCard.getState());
+        dto.setPostalCode(oldCard.getPostalCode());
+        dto.setPhoneNumber(oldCard.getPhoneNumber());
+        dto.setEmail(oldCard.getEmail());
+        CardAccount replacementCard = this.createCardAccount(dto);
+
+
+        // Move Balance
+        Money balance = oldCard.getBalance();
+        oldCard.setBalance(Money.zero(CurrencyUnit.USD));
+        replacementCard.setBalance(balance);
+        cardAccountRepository.save(oldCard);
+        replacementCard = cardAccountRepository.save(replacementCard);
+
+        log.info("Created Replacement Card: {}", replacementCard);
+        return replacementCard;
+    }
 
     public String generateCardNumber(String prefix, String extension) {
         StringBuffer cardNumber = new StringBuffer(prefix);

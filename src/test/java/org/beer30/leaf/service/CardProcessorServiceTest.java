@@ -5,6 +5,8 @@ import org.beer30.leaf.LeafApplication;
 import org.beer30.leaf.TestUtil;
 import org.beer30.leaf.domain.CardAccount;
 import org.beer30.leaf.domain.Transaction;
+import org.beer30.leaf.domain.enumeration.CardStatus;
+import org.beer30.leaf.repository.CardAccountRepository;
 import org.beer30.leaf.web.rest.dto.CardAccountDTO;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
@@ -13,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -28,12 +31,34 @@ public class CardProcessorServiceTest {
     @Autowired
     CardProcessorService cardProcessorService;
 
+    @Autowired
+    CardAccountRepository cardAccountRepository;
+
+    @Value("${leaf.processor.prefix}")
+    private String prefix;
+    @Value("${leaf.processor.personlaized.extension}")
+    private String extension;
+
     CardAccount cardAccount;
 
     @Before
     public void setup() {
-        cardAccount = testService.createCardAccount();
+        String cardNumber = cardProcessorService.generateCardNumber(prefix, extension);
+        cardAccount = testService.createCardAccount(cardNumber);
     }
+
+    @Test
+    public void replaceCard() {
+        // given a card number
+        String oldCardNumber = cardProcessorService.generateCardNumber(prefix, extension);
+        CardAccount oldCard = testService.createCardAccount(oldCardNumber);
+        Assert.assertEquals(oldCard.getCardStatus(), CardStatus.PRE_ACTIVE);
+
+        CardAccount replacementCard = cardProcessorService.replaceCard(oldCard);
+        Assert.assertNotNull(replacementCard);
+        Assert.assertEquals(oldCard.getImprintedName(), replacementCard.getImprintedName());
+    }
+
 
     @Test
     public void generateCardNumber() {

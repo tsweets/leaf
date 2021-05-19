@@ -57,6 +57,24 @@ public class CardProcessor {
 
     }
 
+    @RequestMapping(value = "/v1/card/replace",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CardAccount> replaceCardAccount(@Valid @RequestBody String cardNumber) {
+        log.debug("REST request to replace card account: {}", cardNumber);
+
+        CardAccount oldCard = cardProcessorService.accountInquiry(cardNumber);
+        CardAccount replacementAccount = cardProcessorService.replaceCard(oldCard);
+
+        return Optional.ofNullable(replacementAccount)
+                .map(result -> new ResponseEntity<>(
+                        result,
+                        HttpStatus.CREATED))
+                .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+
+    }
+
+
     @RequestMapping(value = "/v1/card/find-by-number/{cardNumber}",
             method = RequestMethod.GET,
             produces = MediaType.APPLICATION_JSON_VALUE)

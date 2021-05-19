@@ -40,6 +40,7 @@ public class CardProcessorTest {
     CardProcessorService cardProcessorService;
 
 
+
     @Test
     public void getCardNumber() throws Exception {
 
@@ -87,6 +88,21 @@ public class CardProcessorTest {
 
         Assert.assertNotNull(resultCardLookup);
 
+        // replace card
+        // @RequestMapping(value = "/v1/card/replace",
+        MvcResult replaceResult = mockMvc.perform(post("/api/v1/card/replace")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(cardNumber))
+                .andExpect(status().isCreated()).andReturn();
+
+        Assert.assertNotNull(replaceResult);
+        String replaceResultString = replaceResult.getResponse().getContentAsString();
+        CardAccountDTO replaceResultAccount = objectMapper.readValue(replaceResultString, CardAccountDTO.class);
+
+        Assert.assertNotNull(replaceResultAccount);
+        Assert.assertEquals(resultAccount.getDdaAccountNumber(), replaceResultAccount.getDdaAccountNumber());
+
     }
+
 
 }
