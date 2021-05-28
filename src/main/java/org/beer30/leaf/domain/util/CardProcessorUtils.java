@@ -1,5 +1,6 @@
 package org.beer30.leaf.domain.util;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.beer30.leaf.domain.enumeration.CardNetwork;
 import org.beer30.leaf.domain.enumeration.CardType;
@@ -13,6 +14,30 @@ public class CardProcessorUtils {
     String IIB_BIN_EXT;
     @Value("${leaf.processor.personlaized.extension}")
     String PERSO_BIN_EXT;
+
+    @Value("${leaf.processor.prefix}")
+    private String PREFIX;
+
+    @Value("${leaf.processor.dda-prefix}")
+    private String DDA_PREFIX;
+
+    static public String generateCardNumber(String prefix, String extension) {
+        StringBuffer cardNumber = new StringBuffer(prefix);
+        cardNumber.append(extension);
+        // Need 7 more digits
+        String cardRestDigits = RandomStringUtils.randomNumeric(7);
+        cardNumber.append(cardRestDigits);
+
+        // log.info("Generated Card Number: {}", cardNumber);
+        return cardNumber.toString();
+    }
+
+    public String generateDDA(String cardNumber) {
+        StringBuffer dda = new StringBuffer(DDA_PREFIX);
+        dda.append(StringUtils.right(cardNumber, 11));
+
+        return dda.toString();
+    }
 
     static public CardNetwork getCardNetwork(String cardNumber) {
         assert (cardNumber.length() == 16) : "Not a valid card number";
@@ -41,5 +66,17 @@ public class CardProcessorUtils {
         }
 
         return null;
+    }
+
+    public String getInstantIssueExtension() {
+        return IIB_BIN_EXT;
+    }
+
+    public String getPeronalizedExtenstion() {
+        return PERSO_BIN_EXT;
+    }
+
+    public String getPrefix() {
+        return PREFIX;
     }
 }

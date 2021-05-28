@@ -3,8 +3,11 @@ package org.beer30.leaf.web.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.beer30.leaf.LeafApplication;
 import org.beer30.leaf.TestUtil;
+import org.beer30.leaf.domain.enumeration.CardStatus;
+import org.beer30.leaf.domain.enumeration.CardType;
 import org.beer30.leaf.service.CardProcessorService;
 import org.beer30.leaf.web.rest.dto.CardAccountDTO;
+import org.beer30.leaf.web.rest.dto.CardStatusUpdateDTO;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,9 +65,20 @@ public class CardProcessorTest {
     }
 
     @Test
+    public void createInstantIssueCardAccountTest() throws Exception {
+        MvcResult result = mockMvc.perform(post("/api/v1/instant-issue-card"))
+                .andExpect(status().isCreated()).andReturn();
+
+        Assert.assertNotNull(result);
+        String resultString = result.getResponse().getContentAsString();
+        CardAccountDTO resultAccount = objectMapper.readValue(resultString, CardAccountDTO.class);
+
+        Assert.assertEquals(CardType.INSTANT_ISSUE, resultAccount.getCardType());
+    }
+
+    @Test
     public void createCardholder() throws Exception {
-        CardAccountDTO dto = TestUtil.generateFakeCardAccountDTO();
-        dto.setCardNumber(cardProcessorService.generateCardNumber(prefix, extension));
+        CardAccountDTO dto = TestUtil.generateFakeCardAccountDTO(prefix, extension);
 
         MvcResult result = mockMvc.perform(post("/api/v1/card")
                 .contentType(TestUtil.APPLICATION_JSON_UTF8)
@@ -101,6 +115,29 @@ public class CardProcessorTest {
 
         Assert.assertNotNull(replaceResultAccount);
         Assert.assertEquals(resultAccount.getDdaAccountNumber(), replaceResultAccount.getDdaAccountNumber());
+
+        // Update status
+        Assert.assertEquals(CardStatus.PRE_ACTIVE, replaceResultAccount.getCardStatus());
+        CardStatusUpdateDTO cardStatusUpdateDTO = new CardStatusUpdateDTO();
+        cardStatusUpdateDTO.setCardNumber(replaceResultAccount.getCardNumber());
+        cardStatusUpdateDTO.setCardStatus(CardStatus.ACTIVE);
+
+        MvcResult updateStatusResult = mockMvc.perform(post("/api/v1/card/update-status")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(cardStatusUpdateDTO)))
+                .andExpect(status().isOk()).andReturn();
+
+        Assert.assertNotNull(updateStatusResult);
+        MvcResult updateResultCardLookup = mockMvc.perform(get("/api/v1/card/find-by-number/{cardNumber}", replaceResultAccount.getCardNumber()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON)).andReturn();
+
+        Assert.assertNotNull(updateResultCardLookup);
+        String updateResultCardString = updateResultCardLookup.getResponse().getContentAsString();
+        CardAccountDTO updateResultAccount = objectMapper.readValue(updateResultCardString, CardAccountDTO.class);
+        Assert.assertNotNull(updateResultAccount);
+        Assert.assertEquals(CardStatus.ACTIVE, updateResultAccount.getCardStatus());
+
 
     }
 

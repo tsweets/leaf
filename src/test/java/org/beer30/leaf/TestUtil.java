@@ -8,6 +8,7 @@ import com.github.javafaker.Faker;
 import org.beer30.leaf.domain.enumeration.CardNetwork;
 import org.beer30.leaf.domain.enumeration.CardStatus;
 import org.beer30.leaf.domain.enumeration.CardType;
+import org.beer30.leaf.domain.util.CardProcessorUtils;
 import org.beer30.leaf.domain.util.JSR310DateTimeSerializer;
 import org.beer30.leaf.domain.util.JSR310LocalDateDeserializer;
 import org.beer30.leaf.web.rest.dto.CardAccountDTO;
@@ -69,10 +70,10 @@ public class TestUtil {
         return byteArray;
     }
 
-    public static CardAccountDTO generateFakeCardAccountDTO() {
-        Faker faker = new Faker();
-        String cardNumber = faker.number().digits(16);
-
+    public static CardAccountDTO generateFakeCardAccountDTO(String prefix, String extension) {
+        //Faker faker = new Faker();
+        //String cardNumber = faker.number().digits(16);
+        String cardNumber = CardProcessorUtils.generateCardNumber(prefix, extension);
         return TestUtil.generateFakeCardAccountDTO(cardNumber);
     }
 

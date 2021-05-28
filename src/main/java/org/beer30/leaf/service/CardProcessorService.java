@@ -1,7 +1,6 @@
 package org.beer30.leaf.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.beer30.leaf.domain.CardAccount;
 import org.beer30.leaf.domain.Transaction;
@@ -35,6 +34,7 @@ public class CardProcessorService {
     @Autowired
     CardProcessorUtils cardProcessorUtils;
 
+
     public CardAccount closeCard(CardAccount cardAccount) {
         log.info("Request to Close Card: {} ", cardAccount);
         cardAccount.setCardStatus(CardStatus.CLOSED);
@@ -54,7 +54,7 @@ public class CardProcessorService {
 
 
         // return new card
-        String newCardNumber = this.generateCardNumber(prefix, extension);
+        String newCardNumber = CardProcessorUtils.generateCardNumber(prefix, extension);
         log.info("Generated New Card Number: {}", newCardNumber);
         CardAccountDTO dto = new CardAccountDTO();
         dto.setEnvId(1);
@@ -88,16 +88,7 @@ public class CardProcessorService {
         return replacementCard;
     }
 
-    public String generateCardNumber(String prefix, String extension) {
-        StringBuffer cardNumber = new StringBuffer(prefix);
-        cardNumber.append(extension);
-        // Need 7 more digits
-        String cardRestDigits = RandomStringUtils.randomNumeric(7);
-        cardNumber.append(cardRestDigits);
 
-        log.info("Generated Card Number: {}", cardNumber);
-        return cardNumber.toString();
-    }
 
     //Account Inquiry (Given Card Number return Card Account)
     public CardAccount accountInquiry(String cardNumber) {
@@ -108,6 +99,33 @@ public class CardProcessorService {
         log.info("Found Card Account: {}", cardAccount);
 
         return cardAccount;
+    }
+
+    public CardAccount createInstantIssueCardAccount() {
+        log.info("Creating Instant Issue Card Account: {}");
+
+        // Generate New Number
+        String cardNumber = CardProcessorUtils.generateCardNumber(cardProcessorUtils.getPrefix(), cardProcessorUtils.getInstantIssueExtension());
+        log.info("Generated Card Number: {}", cardNumber);
+        CardAccount cardAccount = new CardAccount();
+        cardAccount.setCardNumber(cardNumber);
+        cardAccount.setDdaAccountNumber(cardProcessorUtils.generateDDA(cardNumber));
+        cardAccount.setCardStatus(CardStatus.PRE_ACTIVE);
+        cardAccount.setImprintedName("INSTANT ISSUE BRANDED");
+        cardAccount.setBalance(Money.zero(CurrencyUnit.USD));
+        cardAccount.setDob(java.time.LocalDate.of(0, 1, 1));
+        cardAccount.setSsn("000000000");
+        cardAccount.setExternalId(0l); // Probably should be null but I have a constraint
+
+        cardAccount.setCardNetwork(CardProcessorUtils.getCardNetwork(cardAccount.getCardNumber()));
+        cardAccount.setCardType(cardProcessorUtils.getCardType(cardAccount.getCardNumber()));
+
+        CardAccount savedAccount = cardAccountRepository.save(cardAccount);
+        if (savedAccount != null) {
+            log.info("Saved Card Account with ID: {}", savedAccount.getId());
+        }
+
+        return savedAccount;
     }
 
     // Add a Cardholder
@@ -168,6 +186,14 @@ public class CardProcessorService {
         }
 
         return transactionList;
+    }
+
+    public CardAccount updateCardStatus(String cardNumber, CardStatus newStatus) {
+        log.info("Update Card Status for: {}  - to {}", cardNumber, newStatus);
+        CardAccount cardAccount = this.accountInquiry(cardNumber);
+
+        cardAccount.setCardStatus(newStatus);
+        return cardAccountRepository.save(cardAccount);
     }
 
     public Transaction purchase(String cardNumber, Money purchaseAmount, String description) {

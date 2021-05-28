@@ -6,6 +6,8 @@ import org.beer30.leaf.TestUtil;
 import org.beer30.leaf.domain.CardAccount;
 import org.beer30.leaf.domain.Transaction;
 import org.beer30.leaf.domain.enumeration.CardStatus;
+import org.beer30.leaf.domain.enumeration.CardType;
+import org.beer30.leaf.domain.util.CardProcessorUtils;
 import org.beer30.leaf.repository.CardAccountRepository;
 import org.beer30.leaf.web.rest.dto.CardAccountDTO;
 import org.joda.money.CurrencyUnit;
@@ -43,14 +45,28 @@ public class CardProcessorServiceTest {
 
     @Before
     public void setup() {
-        String cardNumber = cardProcessorService.generateCardNumber(prefix, extension);
+        String cardNumber = CardProcessorUtils.generateCardNumber(prefix, extension);
         cardAccount = testService.createCardAccount(cardNumber);
+    }
+
+    @Test
+    public void testUpdateStatus() {
+        String cardNumber = CardProcessorUtils.generateCardNumber(prefix, extension);
+        cardAccount = testService.createCardAccount(cardNumber);
+
+        Assert.assertEquals(CardStatus.PRE_ACTIVE, cardAccount.getCardStatus());
+
+        cardProcessorService.updateCardStatus(cardNumber, CardStatus.PURGED);
+        CardAccount cardLookup = cardProcessorService.accountInquiry(cardNumber);
+        Assert.assertEquals(CardStatus.PURGED, cardLookup.getCardStatus());
+
+
     }
 
     @Test
     public void replaceCard() {
         // given a card number
-        String oldCardNumber = cardProcessorService.generateCardNumber(prefix, extension);
+        String oldCardNumber = CardProcessorUtils.generateCardNumber(prefix, extension);
         CardAccount oldCard = testService.createCardAccount(oldCardNumber);
         Assert.assertEquals(oldCard.getCardStatus(), CardStatus.PRE_ACTIVE);
 
@@ -62,18 +78,27 @@ public class CardProcessorServiceTest {
 
     @Test
     public void generateCardNumber() {
-        String cardNumber = cardProcessorService.generateCardNumber("123456", "012");
+        String cardNumber = CardProcessorUtils.generateCardNumber("123456", "012");
         Assert.assertNotNull(cardNumber);
         Assert.assertEquals(16, cardNumber.length());
     }
 
     @Test
     public void createCardAccountTest() {
-        CardAccountDTO dto = TestUtil.generateFakeCardAccountDTO();
+        CardAccountDTO dto = TestUtil.generateFakeCardAccountDTO(prefix, extension);
 
         CardAccount cardAccount = cardProcessorService.createCardAccount(dto);
         Assert.assertNotNull(cardAccount);
         Assert.assertTrue(cardAccount.getId() > 0);
+        Assert.assertEquals(CardType.PERSONALIZED, cardAccount.getCardType());
+    }
+
+    @Test
+    public void createInstantIssueCardAccountTest() {
+        CardAccount cardAccount = cardProcessorService.createInstantIssueCardAccount();
+        Assert.assertNotNull(cardAccount);
+        Assert.assertTrue(cardAccount.getId() > 0);
+        Assert.assertEquals(CardType.INSTANT_ISSUE, cardAccount.getCardType());
     }
 
     //Account Inquiry (Given Card Number return Card Account)
