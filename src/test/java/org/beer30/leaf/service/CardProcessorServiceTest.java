@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
@@ -91,6 +92,63 @@ public class CardProcessorServiceTest {
         Assert.assertNotNull(cardAccount);
         Assert.assertTrue(cardAccount.getId() > 0);
         Assert.assertEquals(CardType.PERSONALIZED, cardAccount.getCardType());
+    }
+
+    @Test
+    public void updateCardAccountTest() {
+        CardAccountDTO original = TestUtil.generateFakeCardAccountDTO(prefix, extension);
+
+        CardAccount cardAccount = cardProcessorService.createCardAccount(original);
+        Assert.assertNotNull(cardAccount);
+        Assert.assertTrue(cardAccount.getId() > 0);
+        Assert.assertEquals(CardType.PERSONALIZED, cardAccount.getCardType());
+        String cardNumber = cardAccount.getCardNumber();
+
+        // Name Update
+        String updatedName = original.getImprintedName() + "-UPDATED";
+
+        // Address Update
+        String updatedStreet1 = original.getStreet1() + "-UPDATED";
+        String updatedStreet2 = original.getStreet2() + "-UPDATED";
+        String updatedCity = original.getCity() + "-UPDATED";
+        String updatedState = original.getState() + "-UPDATED";
+        String updatedZip = original.getPostalCode() + "-UPDATED";
+
+        // Census Info
+        String updatedEmail = original.getEmail() + "-UPDATED";
+        String updatedPhone = "5551230000";
+        String updatedSSN = "010-10-1010";
+        LocalDate updatedDOB = original.getDob().plusYears(10);
+
+        CardAccountDTO updatedCardAccount = new CardAccountDTO();
+        updatedCardAccount.setCardNumber(cardNumber);
+        updatedCardAccount.setImprintedName(updatedName);
+        updatedCardAccount.setStreet1(updatedStreet1);
+        updatedCardAccount.setStreet2(updatedStreet2);
+        updatedCardAccount.setCity(updatedCity);
+        updatedCardAccount.setState(updatedState);
+        updatedCardAccount.setPostalCode(updatedZip);
+        updatedCardAccount.setEmail(updatedEmail);
+        updatedCardAccount.setPhoneNumber(updatedPhone);
+        updatedCardAccount.setSsn(updatedSSN);
+        updatedCardAccount.setDob(updatedDOB);
+
+        CardAccount cardAccountSaved = cardProcessorService.updateCardAccount(updatedCardAccount);
+        Assert.assertNotNull(cardAccountSaved);
+
+        CardAccount updated = cardProcessorService.accountInquiry(cardNumber);
+        Assert.assertEquals(cardNumber, updated.getCardNumber());
+        Assert.assertEquals(updatedName, updated.getImprintedName());
+        Assert.assertEquals(updatedStreet1, updated.getStreet1());
+        Assert.assertEquals(updatedStreet2, updated.getStreet2());
+        Assert.assertEquals(updatedCity, updated.getCity());
+        Assert.assertEquals(updatedState, updated.getState());
+        Assert.assertEquals(updatedZip, updated.getPostalCode());
+        Assert.assertEquals(updatedEmail, updated.getEmail());
+        Assert.assertEquals(updatedPhone, updated.getPhoneNumber());
+        Assert.assertEquals(updatedSSN, updated.getSsn());
+        Assert.assertEquals(updatedDOB, updated.getDob());
+
     }
 
     @Test

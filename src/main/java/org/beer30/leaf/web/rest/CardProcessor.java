@@ -2,10 +2,12 @@ package org.beer30.leaf.web.rest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.beer30.leaf.domain.CardAccount;
+import org.beer30.leaf.domain.Transaction;
 import org.beer30.leaf.domain.util.CardProcessorUtils;
 import org.beer30.leaf.service.CardProcessorService;
 import org.beer30.leaf.web.rest.dto.CardAccountDTO;
 import org.beer30.leaf.web.rest.dto.CardStatusUpdateDTO;
+import org.joda.money.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -45,12 +47,45 @@ public class CardProcessor {
     }
 
     @RequestMapping(value = "/v1/card",
+            method = RequestMethod.PUT,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CardAccount> updateCardAccount(@Valid @RequestBody CardAccountDTO cardAccountDTO) {
+        log.debug("REST request to update card account: {}", cardAccountDTO);
+
+        CardAccount cardAccount = cardProcessorService.updateCardAccount(cardAccountDTO);
+
+        return Optional.ofNullable(cardAccount)
+                .map(result -> new ResponseEntity<>(
+                        result,
+                        HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+
+    }
+
+
+    @RequestMapping(value = "/v1/card",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CardAccount> createCardAccount(@Valid @RequestBody CardAccountDTO cardAccountDTO) {
         log.debug("REST request to create card account: {}", cardAccountDTO);
 
         CardAccount cardAccount = cardProcessorService.createCardAccount(cardAccountDTO);
+
+        return Optional.ofNullable(cardAccount)
+                .map(result -> new ResponseEntity<>(
+                        result,
+                        HttpStatus.CREATED))
+                .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+
+    }
+
+    @RequestMapping(value = "/v1/virtual-card",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CardAccount> createVirtualCardAccount(@RequestBody CardAccountDTO cardAccountDTO) {
+        log.debug("REST request to create virtual card account: {}", cardAccountDTO);
+
+        CardAccount cardAccount = cardProcessorService.createVirtualCardAccount(cardAccountDTO);
 
         return Optional.ofNullable(cardAccount)
                 .map(result -> new ResponseEntity<>(
@@ -129,6 +164,24 @@ public class CardProcessor {
                 .map(result -> new ResponseEntity<>(
                         result,
                         HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+
+    }
+
+    //TODO should return Transaction instead
+    @RequestMapping(value = "/v1/card/load/{cardNumber}",
+            method = RequestMethod.POST,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<CardAccount> load(@Valid @RequestBody Money amount, @PathVariable String cardNumber) {
+        log.debug("REST request to load card account: {} - with {}", cardNumber, amount);
+        CardAccount cardAccount = cardProcessorService.accountInquiry(cardNumber);
+        Transaction transaction
+                = cardProcessorService.load(cardNumber, amount, "lead Load Transaction");
+
+        return Optional.ofNullable(cardAccount)
+                .map(result -> new ResponseEntity<>(
+                        result,
+                        HttpStatus.CREATED))
                 .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 
     }

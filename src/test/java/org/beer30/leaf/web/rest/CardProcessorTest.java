@@ -20,8 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -138,7 +137,19 @@ public class CardProcessorTest {
         Assert.assertNotNull(updateResultAccount);
         Assert.assertEquals(CardStatus.ACTIVE, updateResultAccount.getCardStatus());
 
+        // Update Name
+        String originalName = dto.getImprintedName();
+        dto.setImprintedName(originalName + "-UPDATED");
+        MvcResult updateNameResult = mockMvc.perform(put("/api/v1/card/")
+                .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                .content(TestUtil.convertObjectToJsonBytes(dto)))
+                .andExpect(status().isOk()).andReturn();
 
+        Assert.assertNotNull(updateNameResult);
+        String updateResultNameString = updateNameResult.getResponse().getContentAsString();
+        CardAccountDTO updateNameAccount = objectMapper.readValue(updateResultNameString, CardAccountDTO.class);
+
+        Assert.assertEquals(dto.getImprintedName(), updateNameAccount.getImprintedName());
     }
 
 

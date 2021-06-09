@@ -128,6 +128,42 @@ public class CardProcessorService {
         return savedAccount;
     }
 
+    public CardAccount createVirtualCardAccount(CardAccountDTO dto) {
+        log.info("Creating Virtual Card Account: {}", dto);
+        CardAccount cardAccount = new CardAccount();
+        cardAccount.setEnvId(dto.getEnvId());
+        cardAccount.setExternalId(dto.getExternalId());
+        cardAccount.setCardNumber(dto.getCardNumber());
+        cardAccount.setDdaAccountNumber(dto.getDdaAccountNumber());
+        cardAccount.setCardStatus(dto.getCardStatus());
+        cardAccount.setImprintedName(dto.getImprintedName());
+        cardAccount.setBalance(Money.zero(CurrencyUnit.USD));
+        cardAccount.setCardType(dto.getCardType());
+        cardAccount.setCardNetwork(dto.getCardNetwork());
+
+        cardAccount.setDob(dto.getDob());
+        cardAccount.setSsn(dto.getSsn());
+
+    /*    cardAccount.setStreet1(dto.getStreet1());
+        cardAccount.setStreet2(dto.getStreet2());
+        cardAccount.setCity(dto.getCity());
+        cardAccount.setState(dto.getState());
+        cardAccount.setPostalCode(dto.getPostalCode());
+        cardAccount.setPhoneNumber(dto.getPhoneNumber());
+        cardAccount.setEmail(dto.getEmail());*/
+
+        cardAccount.setCardNetwork(CardProcessorUtils.getCardNetwork(cardAccount.getCardNumber()));
+        cardAccount.setCardStatus(CardStatus.PRE_ACTIVE);
+        cardAccount.setCardType(cardProcessorUtils.getCardType(cardAccount.getCardNumber()));
+
+        CardAccount savedAccount = cardAccountRepository.save(cardAccount);
+        if (savedAccount != null) {
+            log.info("Saved Card Account with ID: {}", savedAccount.getId());
+        }
+
+        return savedAccount;
+    }
+
     // Add a Cardholder
     public CardAccount createCardAccount(CardAccountDTO dto) {
         log.info("Creating Card Account: {}", dto);
@@ -149,7 +185,7 @@ public class CardProcessorService {
         cardAccount.setState(dto.getState());
         cardAccount.setPostalCode(dto.getPostalCode());
         cardAccount.setPhoneNumber(dto.getPhoneNumber());
-        cardAccount.setEmail(dto.getPhoneNumber());
+        cardAccount.setEmail(dto.getEmail());
 
         cardAccount.setCardNetwork(CardProcessorUtils.getCardNetwork(cardAccount.getCardNumber()));
         cardAccount.setCardStatus(CardStatus.PRE_ACTIVE);
@@ -196,6 +232,28 @@ public class CardProcessorService {
         return cardAccountRepository.save(cardAccount);
     }
 
+
+    public Transaction load(String cardNumber, Money loadAmount, String description) {
+        CardAccount cardAccount = this.accountInquiry(cardNumber);
+        if (cardAccount == null) {
+            return null;
+        }
+
+        Transaction transaction = new Transaction();
+        transaction.setTransactionCode(TransactionCode.ACH_ADD_FUNDS);
+        transaction.setCardId(cardAccount.getId());
+        transaction.setAmount(loadAmount);
+        transaction.setDate(Instant.now());
+        transaction.setNote(description);
+
+        Transaction transactionSaved = transactionRepository.save(transaction);
+
+        cardAccount.setBalance(cardAccount.getBalance().plus(loadAmount));
+        cardAccountRepository.save(cardAccount);
+
+        return transactionSaved;
+    }
+
     public Transaction purchase(String cardNumber, Money purchaseAmount, String description) {
         CardAccount cardAccount = this.accountInquiry(cardNumber);
         if (cardAccount == null) {
@@ -215,5 +273,23 @@ public class CardProcessorService {
         cardAccountRepository.save(cardAccount);
 
         return transactionSaved;
+    }
+
+    public CardAccount updateCardAccount(CardAccountDTO dto) {
+        CardAccount cardAccount = this.accountInquiry(dto.getCardNumber());
+
+        cardAccount.setImprintedName(dto.getImprintedName());
+        cardAccount.setExternalId(dto.getExternalId());
+        cardAccount.setStreet1(dto.getStreet1());
+        cardAccount.setStreet2(dto.getStreet2());
+        cardAccount.setCity(dto.getCity());
+        cardAccount.setState(dto.getState());
+        cardAccount.setPostalCode(dto.getPostalCode());
+        cardAccount.setEmail(dto.getEmail());
+        cardAccount.setPhoneNumber(dto.getPhoneNumber());
+        cardAccount.setSsn(dto.getSsn());
+        cardAccount.setDob(dto.getDob());
+
+        return cardAccountRepository.save(cardAccount);
     }
 }

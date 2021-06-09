@@ -14,6 +14,8 @@ public class CardProcessorUtils {
     String IIB_BIN_EXT;
     @Value("${leaf.processor.personlaized.extension}")
     String PERSO_BIN_EXT;
+    @Value("${leaf.processor.virtual.extension}")
+    String VIRTUAL_BIN_EXT;
 
     @Value("${leaf.processor.prefix}")
     private String PREFIX;
@@ -63,6 +65,10 @@ public class CardProcessorUtils {
 
         if (binExt.equalsIgnoreCase(PERSO_BIN_EXT)) {
             return CardType.PERSONALIZED;
+        }
+
+        if (binExt.equalsIgnoreCase(VIRTUAL_BIN_EXT)) {
+            return CardType.FUNDING;
         }
 
         return null;
