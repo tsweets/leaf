@@ -46,6 +46,8 @@ public class CardProcessorTest {
     @Test
     public void getCardNumber() throws Exception {
 
+        Assert.assertNotNull(prefix);
+
 
         MvcResult result = mockMvc.perform(get("/api/v1/card/generate-number/{prefix}/{extension}", prefix, extension))
                 .andExpect(status().isOk())

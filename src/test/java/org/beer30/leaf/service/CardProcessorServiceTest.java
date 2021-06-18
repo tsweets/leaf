@@ -132,6 +132,7 @@ public class CardProcessorServiceTest {
         updatedCardAccount.setPhoneNumber(updatedPhone);
         updatedCardAccount.setSsn(updatedSSN);
         updatedCardAccount.setDob(updatedDOB);
+        updatedCardAccount.setExternalId(original.getExternalId());
 
         CardAccount cardAccountSaved = cardProcessorService.updateCardAccount(updatedCardAccount);
         Assert.assertNotNull(cardAccountSaved);

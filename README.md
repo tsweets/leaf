@@ -41,3 +41,20 @@ exact clone of the vendor's API. No harmful information can be gleamed by any ba
 
 http://localhost:8080/swagger-ui.html
 
+### Properties
+
+Probably want to overwrite
+
+``` 
+-Dleaf.processor.prefix=123456  -Dleaf.processor.dda-prefix=1234567
+```
+
+### Docker Information
+
+mvn clean compile jib:dockerBuild
+
+#### Running
+
+docker run -p 5000:5000 --env "SPRING_PROFILES_ACTIVE=prod" leaf-processor:latest
+
+
