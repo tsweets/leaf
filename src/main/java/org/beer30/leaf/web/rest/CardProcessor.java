@@ -66,7 +66,7 @@ public class CardProcessor {
     @RequestMapping(value = "/v1/card",
             method = RequestMethod.POST,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CardAccount> createCardAccount(@Valid @RequestBody CardAccountDTO cardAccountDTO) {
+    public ResponseEntity<CardAccount> createCardAccount(@RequestBody CardAccountDTO cardAccountDTO) {
         log.debug("REST request to create card account: {}", cardAccountDTO);
 
         CardAccount cardAccount = cardProcessorService.createCardAccount(cardAccountDTO);
