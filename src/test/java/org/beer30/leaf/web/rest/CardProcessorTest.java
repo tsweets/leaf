@@ -1,13 +1,18 @@
 package org.beer30.leaf.web.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.beer30.leaf.LeafApplication;
 import org.beer30.leaf.TestUtil;
+import org.beer30.leaf.domain.CardAccount;
 import org.beer30.leaf.domain.enumeration.CardStatus;
 import org.beer30.leaf.domain.enumeration.CardType;
 import org.beer30.leaf.service.CardProcessorService;
 import org.beer30.leaf.web.rest.dto.CardAccountDTO;
 import org.beer30.leaf.web.rest.dto.CardStatusUpdateDTO;
+import org.beer30.leaf.web.rest.dto.TransactionDTO;
+import org.joda.money.CurrencyUnit;
+import org.joda.money.Money;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,6 +25,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -27,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = LeafApplication.class)
 @AutoConfigureMockMvc
+@Slf4j
 public class CardProcessorTest {
 
     @Autowired
@@ -143,8 +151,8 @@ public class CardProcessorTest {
         String originalName = dto.getImprintedName();
         dto.setImprintedName(originalName + "-UPDATED");
         MvcResult updateNameResult = mockMvc.perform(put("/api/v1/card/")
-                .contentType(TestUtil.APPLICATION_JSON_UTF8)
-                .content(TestUtil.convertObjectToJsonBytes(dto)))
+                        .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                        .content(TestUtil.convertObjectToJsonBytes(dto)))
                 .andExpect(status().isOk()).andReturn();
 
         Assert.assertNotNull(updateNameResult);
@@ -152,6 +160,28 @@ public class CardProcessorTest {
         CardAccountDTO updateNameAccount = objectMapper.readValue(updateResultNameString, CardAccountDTO.class);
 
         Assert.assertEquals(dto.getImprintedName(), updateNameAccount.getImprintedName());
+
+        // Load card
+        String replacedCardNumber = replaceResultAccount.getCardNumber();
+        Long replacedCardId = cardProcessorService.accountInquiry(replacedCardNumber).getId();
+        log.info("Replacement Card is: {} ID: {}", replacedCardNumber, replacedCardId);
+        Money loadAmount = Money.of(CurrencyUnit.USD, 111.22);
+
+        MvcResult loadCardResult = mockMvc.perform(post("/api/v1/card/load/{cardNumber}", replacedCardNumber)
+                        .contentType(TestUtil.APPLICATION_JSON_UTF8)
+                        .content(TestUtil.convertObjectToJsonBytes(loadAmount)))
+                .andExpect(status().isCreated()).andReturn();
+
+        CardAccount balCheck = cardProcessorService.accountInquiry(replacedCardNumber);
+        Assert.assertEquals(loadAmount.getAmount(), balCheck.getBalance().getAmount());
+
+        // Get Transactions - should be 1
+        MvcResult getTxResult = mockMvc.perform(get("/api/v1/card/transactions/{cardNumber}", replacedCardNumber))
+                .andExpect(status().isOk()).andReturn();
+        String getTxResultString = getTxResult.getResponse().getContentAsString();
+        List<TransactionDTO> getTxResultReturn = objectMapper.readValue(getTxResultString, List.class);
+        Assert.assertEquals(1, getTxResultReturn.size());
+
     }
 
 

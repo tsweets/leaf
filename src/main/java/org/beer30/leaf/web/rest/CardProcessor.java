@@ -7,6 +7,8 @@ import org.beer30.leaf.domain.util.CardProcessorUtils;
 import org.beer30.leaf.service.CardProcessorService;
 import org.beer30.leaf.web.rest.dto.CardAccountDTO;
 import org.beer30.leaf.web.rest.dto.CardStatusUpdateDTO;
+import org.beer30.leaf.web.rest.dto.TransactionDTO;
+import org.beer30.leaf.web.rest.mapper.TransactionMapper;
 import org.joda.money.Money;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -176,12 +180,30 @@ public class CardProcessor {
         log.debug("REST request to load card account: {} - with {}", cardNumber, amount);
         CardAccount cardAccount = cardProcessorService.accountInquiry(cardNumber);
         Transaction transaction
-                = cardProcessorService.load(cardNumber, amount, "lead Load Transaction");
+                = cardProcessorService.load(cardNumber, amount, "leaf Load Transaction");
 
         return Optional.ofNullable(cardAccount)
                 .map(result -> new ResponseEntity<>(
                         result,
                         HttpStatus.CREATED))
+                .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+
+    }
+
+    @RequestMapping(value = "/v1/card/transactions/{cardNumber}",
+            method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<TransactionDTO>> getTransactions(@PathVariable String cardNumber) {
+        log.debug("REST request to card transactions: with {}", cardNumber);
+        List<Transaction> transactionList = cardProcessorService.getTransactionHistory(cardNumber);
+        List<TransactionDTO> dtos = new ArrayList<>();
+        TransactionMapper txMapper = new TransactionMapper();
+        dtos = txMapper.transactionsToTransactionDTOs(transactionList);
+
+        return Optional.ofNullable(dtos)
+                .map(result -> new ResponseEntity<>(
+                        result,
+                        HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 
     }
