@@ -57,4 +57,6 @@ mvn clean compile jib:dockerBuild
 
 docker run -p 5000:5000 --env "SPRING_PROFILES_ACTIVE=prod" leaf-processor:latest
 
+#### Push
 
+docker image tag e447c2968705 tsweets/leaf-processor:latest docker push tsweets/leaf-processor:latest
