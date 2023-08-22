@@ -1,13 +1,13 @@
 package org.beer30.leaf.web.rest.dto;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.beer30.leaf.domain.enumeration.CardNetwork;
 import org.beer30.leaf.domain.enumeration.CardStatus;
 import org.beer30.leaf.domain.enumeration.CardType;
 import org.joda.money.Money;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.time.LocalDate;
 
 @Data

@@ -1,11 +1,11 @@
 package org.beer30.leaf.web.rest.dto;
 
 
+import jakarta.validation.constraints.NotNull;
 import org.beer30.leaf.domain.enumeration.TransactionCode;
 import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 
-import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;

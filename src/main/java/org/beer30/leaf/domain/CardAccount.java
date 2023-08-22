@@ -1,16 +1,16 @@
 package org.beer30.leaf.domain;
 
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
-import org.beer30.leaf.domain.enumeration.CardStatus;
 import org.beer30.leaf.domain.enumeration.CardNetwork;
+import org.beer30.leaf.domain.enumeration.CardStatus;
 import org.beer30.leaf.domain.enumeration.CardType;
-import org.hibernate.annotations.Type;
+import org.joda.money.CurrencyUnit;
 import org.joda.money.Money;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -48,10 +48,19 @@ public class CardAccount {
     @Column(name = "imprinted_name", length = 60)
     private String imprintedName;
 
+/*
     @NotNull
     @Column(name = "balance", precision = 10, scale = 2)
     @Type(type = "org.jadira.usertype.moneyandcurrency.joda.PersistentMoneyAmount", parameters = {@org.hibernate.annotations.Parameter(name = "currencyCode", value = "USD")})
     private Money balance;
+*/
+
+    @NotNull
+    @Column(length = 3, nullable = false)
+    private String balanceCurrency;
+    @NotNull
+    @Column(columnDefinition = "Decimal(19,2) default '0.00'", nullable = false)
+    private BigDecimal balanceValue;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -90,5 +99,20 @@ public class CardAccount {
 
     @Column(name = "email")
     private String email;
+
+    public Money getBalance() {
+        if (this.balanceValue == null) {
+            return Money.zero(CurrencyUnit.USD);
+        } else {
+            return Money.of(CurrencyUnit.of(this.balanceCurrency), this.balanceValue);
+        }
+    }
+
+    public void setBalance(Money balance) {
+        if (balance != null) {
+            this.balanceValue = balance.getAmount();
+            this.balanceCurrency = balance.getCurrencyUnit().getCode();
+        }
+    }
 
 }

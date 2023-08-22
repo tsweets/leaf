@@ -1,6 +1,7 @@
 package org.beer30.leaf.web.rest.dto;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
+
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Objects;

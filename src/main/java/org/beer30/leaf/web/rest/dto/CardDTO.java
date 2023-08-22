@@ -1,10 +1,10 @@
 package org.beer30.leaf.web.rest.dto;
 
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.beer30.leaf.domain.enumeration.CardStatus;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Objects;
