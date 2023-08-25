@@ -150,7 +150,7 @@ public class CardProcessorTest {
         // Update Name
         String originalName = dto.getImprintedName();
         dto.setImprintedName(originalName + "-UPDATED");
-        MvcResult updateNameResult = mockMvc.perform(put("/api/v1/card/")
+        MvcResult updateNameResult = mockMvc.perform(put("/api/v1/card")
                         .contentType(TestUtil.APPLICATION_JSON_UTF8)
                         .content(TestUtil.convertObjectToJsonBytes(dto)))
                 .andExpect(status().isOk()).andReturn();
