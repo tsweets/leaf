@@ -1,0 +1,17 @@
+#docker pull harbor.skyline.lan/leaf-processor/leaf-processor:latest
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: leaf-processor
+  name: leaf-processor
+  namespace: default
+spec:
+  containers:
+    - image: harbor.skyline.lan/leaf-processor/leaf-processor:latest
+      imagePullPolicy: Always
+      name: leaf-processor
+      ports:
+        - containerPort: 80
+          protocol: TCP
+      resources: { }
