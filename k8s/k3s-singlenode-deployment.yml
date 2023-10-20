@@ -1,0 +1,76 @@
+###
+#
+# Note: This is for a default deployment of k3s single node cluster on AWS
+# In that config Traefik is running on ports 80/443 - so we really need to use path based ingress rules
+# test externally via curl http://<external ip>   eg curl -v http://k3s-master.pbi.corp:80
+#
+# Eventhough this is not used I'm leaving in the config for the volume config map for future reference
+# --(index.html) <html>
+#                <head>
+#                  <title>Hello World!</title>
+#                </head>
+#                <body>Hello World!</body>
+#                </html>
+# -- kubectl create configmap hello-world --from-file index.html
+# --
+---
+# Any traffic comming in on the Traefik port (80/443 for default install) with a path of "/" fwd to the leaf-service on port 5000
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: leaf-processor-ingress
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: leaf-service
+                port:
+                  number: 5000
+
+---
+# Create a Service listening on Port 5000 to Port (Target) 5000
+apiVersion: v1
+kind: Service
+metadata:
+  name: leaf-service
+spec:
+  ports:
+    - port: 5000
+      targetPort: 5000
+      protocol: TCP
+  selector:
+    app: leaf-processor
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: leaf-processor-deployment
+spec:
+  selector:
+    matchLabels:
+      app: leaf-processor
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: leaf-processor
+    spec:
+      containers:
+        - name: leaf-processor
+          image: tsweets/leaf-processor:silver
+          ports:
+            - containerPort: 5000
+          volumeMounts:
+            - name: hello-world-volume
+              mountPath: /usr/share/nginx/html
+      volumes:
+        - name: hello-world-volume
+          configMap:
+            name: hello-world
